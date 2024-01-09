@@ -1,10 +1,12 @@
 import Vue from 'vue'
 import App from './app.vue'
-import ElementUI from 'element-ui';
+// import ElementUI from 'element-ui';
+import { Button } from 'element-ui'
 import * as ExcelJS from 'exceljs'
 import 'element-ui/lib/theme-chalk/index.css';
 
-Vue.use(ElementUI);
+// Vue.use(ElementUI);
+Vue.use(Button);
 Vue.use(ExcelJS)
 
 console.log('2024年1月5日00:37:17')

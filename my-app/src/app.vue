@@ -15,8 +15,8 @@
         <el-button disabled size="small" type="primary" @click="handleCost">采集导出供货价</el-button>
         <el-button disabled size="small" type="primary" @click="handleSKUTime">采集导出SKU站点时间</el-button>
 
-        <el-button size="small" type="primary" v-if="!autoPage" @click="openAutoPage">开启自动翻页</el-button>
-        <el-button size="small" type="primary" v-if="autoPage" @click="closeAutoPage">关闭自动翻页</el-button>
+        <el-button disabled size="small" type="primary" v-if="!autoPage" @click="openAutoPage">开启自动翻页</el-button>
+        <el-button disabled size="small" type="primary" v-if="autoPage" @click="closeAutoPage">关闭自动翻页</el-button>
         
         <el-button size="small" type="primary" v-if="!autoExport" @click="openAutoExport">开启自动导出excel</el-button>
         <el-button size="small" type="primary" v-if="autoExport" @click="closeAutoExport">关闭自动导出excel</el-button>
@@ -98,7 +98,11 @@ export default {
       this.show = !this.show
     },
     openAutoPage() {
-      this.autoPage = true
+      this.$message({
+        type: 'info',
+        message: '此处有bug，因油猴脚本暂停失败，暂不开启翻页爬，建议设置每页为40个，手动每页执行'
+      })
+      this.autoPage = false
     },
     closeAutoPage() {
       this.autoPage = false
@@ -132,75 +136,124 @@ export default {
       console.log(window.location.href)
       return true
     },
-    catchData(source, keyList, autoPage) {
+    async catchData(source, keyList, autoPage) {
       var result = []
-      var index = 1
       if(autoPage){
-        while (this.catchAutoPage) {
-          for (let index = 0; index < keyList.length; index++) {
-            console.log(keyList[index], keyList)
-            var tempdata = document.querySelectorAll(keyList[index])
-            if(tempdata.length <10){
-              // 注意，此处会乱
-              tempdata.push(document.querySelectorAll("div > div > div.spu-rate_main__DxqS- > div > div.spu-rate_rate__2QG0J > div > a > span"))
+        var pageTotal = parseInt(document.querySelectorAll('[data-testid="beast-core-pagination"] li')[document.querySelectorAll('[data-testid="beast-core-pagination"] li').length - 2].textContent)
+        for (let index = 1; index < pageTotal; index++) {
+          // var intervalId = window.setInterval(function() {
+          //   if (document.readyState === "complete") {
+          //     clearInterval(intervalId);
+          //     // 在这里放置你想要延迟执行的油猴脚本代码
+          //   }
+          // }, 3000);
+
+          console.log("当前爬取第："+index+'页',)
+          const elementAll = document.querySelector("#root > div > div > div.outerWrapper-1-3-1.outerWrapper-d0-1-3-2.index-module__table-with-filter___cCyT_ > div.index-module__flex-1-1___1sS5J.index-module__column-space-between___TZS4c > div.index-module__flex-1-1___1sS5J > div.TB_outerWrapper_5-80-0.TB_bordered_5-80-0.TB_notTreeStriped_5-80-0 > div > div > div.TB_body_5-80-0 > div > div.TB_hiddenScrollBar_5-80-0.TB_scrollXY_5-80-0 > table > tbody");
+          const trElements = elementAll.querySelectorAll("tr");
+          const trCount = trElements.length;
+          console.log(trCount);  // 输出tbody中的tr数量
+          var pageCount = 1
+          for (let trIndex = 0; trIndex < trCount; trIndex++) {
+            // skc
+            var currentSkc = '#root > div > div > div.outerWrapper-1-3-1.outerWrapper-d0-1-3-2.index-module__table-with-filter___cCyT_ > div.index-module__flex-1-1___1sS5J.index-module__column-space-between___TZS4c > div.index-module__flex-1-1___1sS5J > div.TB_outerWrapper_5-80-0.TB_bordered_5-80-0.TB_notTreeStriped_5-80-0 > div > div > div.TB_body_5-80-0 > div > div.TB_hiddenScrollBar_5-80-0.TB_scrollXY_5-80-0 > table > tbody > tr:nth-child(' + trIndex + ') > td:nth-child(2) > div > div > p:nth-child(5)' 
+            // pingfen
+            var currentPingfen = '#root > div > div > div.outerWrapper-1-3-1.outerWrapper-d0-1-3-2.index-module__table-with-filter___cCyT_ > div.index-module__flex-1-1___1sS5J.index-module__column-space-between___TZS4c > div.index-module__flex-1-1___1sS5J > div.TB_outerWrapper_5-80-0.TB_bordered_5-80-0.TB_notTreeStriped_5-80-0 > div > div > div.TB_body_5-80-0 > div > div.TB_hiddenScrollBar_5-80-0.TB_scrollXY_5-80-0 > table > tbody > tr:nth-child(' + trIndex + ') > td:nth-child(2) > div > div > p:nth-child(6)'
+            // zanwu
+            var currentZanwu = '#root > div > div > div.outerWrapper-1-3-1.outerWrapper-d0-1-3-2.index-module__table-with-filter___cCyT_ > div.index-module__flex-1-1___1sS5J.index-module__column-space-between___TZS4c > div.index-module__flex-1-1___1sS5J > div.TB_outerWrapper_5-80-0.TB_bordered_5-80-0.TB_notTreeStriped_5-80-0 > div > div > div.TB_body_5-80-0 > div > div.TB_hiddenScrollBar_5-80-0.TB_scrollXY_5-80-0 > table > tbody > tr:nth-child(' + trIndex + ') > td:nth-child(2) > div > div > div.spu-rate_main__DxqS- > div > div'
+            var skcText = document.querySelector(currentSkc) != null ? document.querySelector(currentSkc).innerText : ''
+            // var pingfenText = document.querySelector(currentPingfen) != null ? document.querySelector(currentPingfen).innerText : ''
+            var zanwuText = document.querySelector(currentZanwu) != null ? document.querySelector(currentZanwu).innerText : ''
+            if(skcText.length>0){
+                console.log('当前爬取第:'+index+'页第：'+pageCount+'条',skcText, zanwuText)
+                pageCount++
+                let obj = {skc: skcText, zanwu:zanwuText}
+                result.push(obj)
             }
-            console.log(tempdata)
-            result.push(tempdata)
           }
-          
-          index++
-          console.log("page："+index)
+          pageCount = 1
           // document.querySelector("#root > div > div > div.outerWrapper-1-3-1.outerWrapper-d0-1-3-2.index-module__table-with-filter___cCyT_ > div.index-module__flex-1-1___1sS5J.index-module__column-space-between___TZS4c > div.index-module__flex-0-0___I-d-v.index-module__sticky-table-bottom___Oi-nB > div.index-module__pagination-wrapper___17qlp > ul > li.PGT_next_5-80-0")
           const element = document.querySelector("#root > div > div > div.outerWrapper-1-3-1.outerWrapper-d0-1-3-2.index-module__table-with-filter___cCyT_ > div.index-module__flex-1-1___1sS5J.index-module__column-space-between___TZS4c > div.index-module__flex-0-0___I-d-v.index-module__sticky-table-bottom___Oi-nB > div.index-module__pagination-wrapper___17qlp > ul > li.PGT_next_5-80-0");
           if (element && element.classList.contains('PGT_disabled_5-80-0')) {
             // console.log("元素可点击");
             document.querySelector("#root > div > div > div.outerWrapper-1-3-1.outerWrapper-d0-1-3-2.index-module__table-with-filter___cCyT_ > div.index-module__flex-1-1___1sS5J.index-module__column-space-between___TZS4c > div.index-module__flex-0-0___I-d-v.index-module__sticky-table-bottom___Oi-nB > div.index-module__pagination-wrapper___17qlp > ul > li.PGT_next_5-80-0").click()
-            this.RandomClick(3000, 3100)
+            console.log(new Date().toLocaleString())
+            await d(5000)
+            setTimeout(() => {
+              this.$message.success('第'+index+'页自动翻页中')
+            }, 5000);
+            console.log(new Date().toLocaleString())
           } else {
-            console.log("已经到最后一页，元素不可点击");
+            console.log("已经到最后一页，元素不可点击",element && element.classList.contains('PGT_disabled_5-80-0'));
             this.catchAutoPage = false
           }
         }
       } else {
-        for (let index = 0; index < keyList.length; index++) {
-          console.log(keyList[index], keyList)
-          var tempdata = document.querySelectorAll(keyList[index])
-          console.log(tempdata)
-          result.push(tempdata)
+        const elementAll = document.querySelector("#root > div > div > div.outerWrapper-1-3-1.outerWrapper-d0-1-3-2.index-module__table-with-filter___cCyT_ > div.index-module__flex-1-1___1sS5J.index-module__column-space-between___TZS4c > div.index-module__flex-1-1___1sS5J > div.TB_outerWrapper_5-80-0.TB_bordered_5-80-0.TB_notTreeStriped_5-80-0 > div > div > div.TB_body_5-80-0 > div > div.TB_hiddenScrollBar_5-80-0.TB_scrollXY_5-80-0 > table > tbody");
+        const trElements = elementAll.querySelectorAll("tr");
+        const trCount = trElements.length;
+
+        console.log(trCount);  // 输出tbody中的tr数量
+        var pageCount = 1
+        for (let trIndex = 0; trIndex < trCount; trIndex++) {
+          // const element = array[index];
+          // skc
+          var currentSkc = '#root > div > div > div.outerWrapper-1-3-1.outerWrapper-d0-1-3-2.index-module__table-with-filter___cCyT_ > div.index-module__flex-1-1___1sS5J.index-module__column-space-between___TZS4c > div.index-module__flex-1-1___1sS5J > div.TB_outerWrapper_5-80-0.TB_bordered_5-80-0.TB_notTreeStriped_5-80-0 > div > div > div.TB_body_5-80-0 > div > div.TB_hiddenScrollBar_5-80-0.TB_scrollXY_5-80-0 > table > tbody > tr:nth-child(' + trIndex + ') > td:nth-child(2) > div > div > p:nth-child(5)' 
+          // pingfen
+          var currentPingfen = '#root > div > div > div.outerWrapper-1-3-1.outerWrapper-d0-1-3-2.index-module__table-with-filter___cCyT_ > div.index-module__flex-1-1___1sS5J.index-module__column-space-between___TZS4c > div.index-module__flex-1-1___1sS5J > div.TB_outerWrapper_5-80-0.TB_bordered_5-80-0.TB_notTreeStriped_5-80-0 > div > div > div.TB_body_5-80-0 > div > div.TB_hiddenScrollBar_5-80-0.TB_scrollXY_5-80-0 > table > tbody > tr:nth-child(' + trIndex + ') > td:nth-child(2) > div > div > p:nth-child(6)'
+          // zanwu
+          var currentZanwu = '#root > div > div > div.outerWrapper-1-3-1.outerWrapper-d0-1-3-2.index-module__table-with-filter___cCyT_ > div.index-module__flex-1-1___1sS5J.index-module__column-space-between___TZS4c > div.index-module__flex-1-1___1sS5J > div.TB_outerWrapper_5-80-0.TB_bordered_5-80-0.TB_notTreeStriped_5-80-0 > div > div > div.TB_body_5-80-0 > div > div.TB_hiddenScrollBar_5-80-0.TB_scrollXY_5-80-0 > table > tbody > tr:nth-child(' + trIndex + ') > td:nth-child(2) > div > div > div.spu-rate_main__DxqS- > div > div'
+          var skcText = document.querySelector(currentSkc) != null ? document.querySelector(currentSkc).innerText : ''
+          // var pingfenText = document.querySelector(currentPingfen) != null ? document.querySelector(currentPingfen).innerText : ''
+          var zanwuText = document.querySelector(currentZanwu) != null ? document.querySelector(currentZanwu).innerText : ''
+          if(skcText.length>0){
+              console.log('当前爬取第:1页第：'+pageCount+'条',skcText, zanwuText)
+              pageCount++
+              let obj = {skc: skcText, zanwu:zanwuText}
+              result.push(obj)
+          }
         }
+        
+        pageCount = 1
       }
-      this.RandomClick(3000, 3100)
+      console.log(new Date().toLocaleString())
+      // await this.RandomClick(3000, 3100)
+      await d(500)
+      console.log(new Date().toLocaleString())
       console.log('result', result)
       this.result = result
       this.processData()
       return result
     },
     processData() {
-      // 获取二维数组的列数
+      // // 获取二维数组的列数
       var result = this.result
-      const cols = result[0].length;
-      var tempdata = []
-      // 遍历列
-      for (let j = 0; j < cols; j++) {
-        let columnElements = []; // 存储相同索引位置的元素
-        // 遍历行
-        for (let i = 0; i < result.length; i++) {
-          // 获取相同索引位置的元素
-          var element = result[i][j].innerHTML;
-          // if (element.includes("SKC")) {
-          //   element = element.substring(3);
-          //   // console.log(substring);
-          // }
-          // 将元素添加到数组中
-          columnElements.push(element);
-        }
-        // 输出该列的元素
-        console.log(`列 [${j}]:`, columnElements);
-        tempdata.push(columnElements)
-      }
-      // this.downloadData(tempdata)
-      console.log(tempdata)
-      this.handleDownloadExcel(tempdata)
+      // const cols = result[0].length;
+      // var tempdata = []
+      // // 遍历列
+      // for (let j = 0; j < cols; j++) {
+      //   let columnElements = []; // 存储相同索引位置的元素
+      //   // 遍历行
+      //   for (let i = 0; i < result.length; i++) {
+      //     // 获取相同索引位置的元素
+      //     var element = result[i][j].innerHTML;
+      //     // if (element.includes("SKC")) {
+      //     //   element = element.substring(3);
+      //     //   // console.log(substring);
+      //     // }
+      //     // 将元素添加到数组中
+      //     columnElements.push(element);
+      //   }
+      //   // 输出该列的元素
+      //   console.log(`列 [${j}]:`, columnElements);
+      //   tempdata.push(columnElements)
+      // }
+      // // this.downloadData(tempdata)
+      // console.log(tempdata)
+      var filterVal = ['skc','zanwu']
+      var temp = this.formatJson(filterVal, result)
+      console.log("最终结果", temp)
+      this.handleDownloadExcel(temp)
     },
     handleAllProcess(source) {
       // 判断页面是否正确
@@ -270,7 +323,7 @@ export default {
       // 将工作簿保存到文件
       workbook.xlsx.writeBuffer().then(data => {
         const blob = new Blob([data], { type: this.blobType })
-        saveAs(blob, '自动采集评分'+ new Date().toLocaleDateString()+'.xlsx')
+        saveAs(blob, '自动采集评分'+ new Date().toLocaleString()+'.xlsx')
       })
       // this.consumerLogTotal = response.content.count
     
