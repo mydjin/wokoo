@@ -180,7 +180,7 @@ export default {
       }
       return false
     },
-    async catchData(source, prekeyList, keyList, autoPage, pageElement, nextPageElement) {
+    async catchData(source, prekeyList, keyList, autoPage, pageElement, nextPageElement, pageSkipModel = false) {
       this.tempResult = []
       this.currentSource = source
       switch (source) {
@@ -202,10 +202,12 @@ export default {
       }
       var pageTotal = parseInt(document.querySelectorAll('[data-testid="beast-core-pagination"] li')[document.querySelectorAll('[data-testid="beast-core-pagination"] li').length - 2].textContent)
       if(isNaN(pageTotal)){
-        window.alert("未获取到页码，将采用爬取单页的形式导出");
-        this.autoPage = false
-        this.catchData(source, prekeyList, keyList, false, pageElement, nextPageElement)
-        return
+        if(!pageSkipModel) {
+          window.alert("未获取到页码，将采用爬取单页的形式导出");
+          this.autoPage = false
+          this.catchData(source, prekeyList, keyList, false, pageElement, nextPageElement, true)
+          return
+        }
       }else{
         var index = 1
         var that = this
@@ -233,18 +235,29 @@ export default {
                   for (let trIndex = 0; trIndex < trCount; trIndex++) {
                     // skc
                     var currentSkc = prekeyList[0] + trIndex + keyList[0]
-                    // pingfen
-                    var currentPingfen = prekeyList[1] + trIndex + keyList[1]
+                    // 评论数
+                    var currentPinglunshu = prekeyList[1] + trIndex + keyList[1]
                     // zanwu
                     var currentZanwu = prekeyList[2] + trIndex + keyList[2]
                     
                     var skcText = document.querySelector(currentSkc) != null ? document.querySelector(currentSkc).innerText : ''
-                    // var pingfenText = document.querySelector(currentPingfen) != null ? document.querySelector(currentPingfen).innerText : ''
+                    var pinglunshuText = document.querySelector(currentPinglunshu) != null ? document.querySelector(currentPinglunshu).innerText : ''
                     var zanwuText = document.querySelector(currentZanwu) != null ? document.querySelector(currentZanwu).innerText : ''
+                    if (skcText.indexOf('SKC：') != -1) {
+                      skcText = skcText.substr(4)
+                    }
+                    if (zanwuText == '暂无评分') {
+                      zanwuText = ''
+                    } else {
+                      zanwuText = zanwuText.substr(0, zanwuText.length - 1)
+                    }
+                    if (pinglunshuText != '') {
+                      pinglunshuText = pinglunshuText.substr(4, pinglunshuText.length-1)
+                    }
                     if(skcText.length>0){
-                        console.log('当前爬取第:'+index+'页第：'+pageCount+'条',skcText, zanwuText)
+                        console.log('当前爬取第:'+index+'页第：'+pageCount+'条',skcText, zanwuText, pinglunshuText)
                         pageCount++
-                        let obj = {skc: skcText, zanwu:zanwuText}
+                        let obj = {skc: skcText, zanwu:zanwuText, pinglunshu: pinglunshuText}
                         that.tempResult.push(obj)
                     }
                   }
@@ -266,6 +279,9 @@ export default {
                     
                     var skcText = document.querySelector(currentSkc) != null ? document.querySelector(currentSkc).innerText : ''
                     var zhandianshijianText = document.querySelector(currentZhandianshijian) != null ? document.querySelector(currentZhandianshijian).innerText : ''
+                    if (zhandianshijianText.indexOf('加入站点时间：') != -1) {
+                      zhandianshijianText = zhandianshijianText.substr(7)
+                    }
                     
                     if(skcText.length>0){
                         console.log('当前爬取第:'+index+'页第：'+pageCount+'条',skcText, zhandianshijianText)
@@ -315,19 +331,30 @@ export default {
                     // skc
                     var currentSkc = prekeyList[0] + trIndex + keyList[0]
                     // pingfen
-                    var currentPingfen = prekeyList[1] + trIndex + keyList[1]
+                    var currentPinglunshu = prekeyList[1] + trIndex + keyList[1]
                     // zanwu
                     var currentZanwu = prekeyList[2] + trIndex + keyList[2]
 
                     // console.log(trIndex, currentSkc, currentPingfen, currentZanwu)
                     
                     var skcText = document.querySelector(currentSkc) != null ? document.querySelector(currentSkc).innerText : ''
-                    // var pingfenText = document.querySelector(currentPingfen) != null ? document.querySelector(currentPingfen).innerText : ''
+                    var pinglunshuText = document.querySelector(currentPinglunshu) != null ? document.querySelector(currentPinglunshu).innerText : ''
                     var zanwuText = document.querySelector(currentZanwu) != null ? document.querySelector(currentZanwu).innerText : ''
+                    if (skcText.indexOf('SKC：') != -1) {
+                      skcText = skcText.substr(4)
+                    }
+                    if (zanwuText == '暂无评分') {
+                      zanwuText = ''
+                    } else {
+                      zanwuText = zanwuText.substr(0, zanwuText.length - 1)
+                    }
+                    if (pinglunshuText != '') {
+                      pinglunshuText = pinglunshuText.substr(4, zanwuText.length-1)
+                    }
                     if(skcText.length>0){
-                        console.log('当前爬取第1页第：'+pageCount+'条',skcText, zanwuText)
+                        console.log('当前爬取第1页第：'+pageCount+'条',skcText, zanwuText, pinglunshuText)
                         pageCount++
-                        let obj = {skc: skcText, zanwu:zanwuText}
+                        let obj = {skc: skcText, zanwu:zanwuText, pinglunshu: pinglunshuText}
                         that.tempResult.push(obj)
                     }
                   }
@@ -346,7 +373,9 @@ export default {
                     
                     var skcText = document.querySelector(currentSkc) != null ? document.querySelector(currentSkc).innerText : ''
                     var zhandianshijianText = document.querySelector(currentZhandianshijian) != null ? document.querySelector(currentZhandianshijian).innerText : ''
-                    
+                    if (zhandianshijianText.indexOf('加入站点时间：') != -1) {
+                      zhandianshijianText = zhandianshijianText.substr(7)
+                    }
                     if(skcText.length>0){
                         console.log('当前爬取第1页第：'+pageCount+'条',skcText, zhandianshijianText)
                         pageCount++
@@ -367,7 +396,7 @@ export default {
               return that.tempResult
             }
           }
-        }, 4000);
+        }, 7000);
       }
     },
     processData(source) {
@@ -380,7 +409,7 @@ export default {
       }
       switch (source) {
         case "handleScore":
-          filterVal = ['skc','zanwu']
+          filterVal = ['skc','zanwu', 'pinglunshu']
           break;
         case "handleCost":
           
@@ -426,8 +455,9 @@ export default {
                             "#root > div > div > div.outerWrapper-1-3-1.outerWrapper-d0-1-3-2.index-module__table-with-filter___cCyT_ > div.index-module__flex-1-1___1sS5J.index-module__column-space-between___TZS4c > div.index-module__flex-1-1___1sS5J > div.TB_outerWrapper_5-80-0.TB_bordered_5-80-0.TB_notTreeStriped_5-80-0 > div > div > div.TB_body_5-80-0 > div > div.TB_hiddenScrollBar_5-80-0.TB_scrollXY_5-80-0 > table > tbody > tr:nth-child(",
                             "#root > div > div > div.outerWrapper-1-3-1.outerWrapper-d0-1-3-2.index-module__table-with-filter___cCyT_ > div.index-module__flex-1-1___1sS5J.index-module__column-space-between___TZS4c > div.index-module__flex-1-1___1sS5J > div.TB_outerWrapper_5-80-0.TB_bordered_5-80-0.TB_notTreeStriped_5-80-0 > div > div > div.TB_body_5-80-0 > div > div.TB_hiddenScrollBar_5-80-0.TB_scrollXY_5-80-0 > table > tbody > tr:nth-child("
                             ]
+                            
             var keyList = [") > td:nth-child(2) > div > div > p:nth-child(5)",
-                              ") > td:nth-child(2) > div > div > p:nth-child(6)", 
+                              ") > td:nth-child(2) > div > div > div.spu-rate_main__DxqS- > div > div.spu-rate_comment__qBBYX", 
                               ") > td:nth-child(2) > div > div > div.spu-rate_main__DxqS- > div > div"]
             // console.log(prekeyList, keyList)
             var pageElement = "#root > div > div > div.outerWrapper-1-3-1.outerWrapper-d0-1-3-2.index-module__table-with-filter___cCyT_ > div.index-module__flex-1-1___1sS5J.index-module__column-space-between___TZS4c > div.index-module__flex-1-1___1sS5J > div.TB_outerWrapper_5-80-0.TB_bordered_5-80-0.TB_notTreeStriped_5-80-0 > div > div > div.TB_body_5-80-0 > div > div.TB_hiddenScrollBar_5-80-0.TB_scrollXY_5-80-0 > table > tbody"
@@ -449,7 +479,7 @@ export default {
                               ") > td:nth-child(10) > div > div > div:nth-child(6) > span"]
                               // console.log(prekeyList, keyList)
             var pageElement = "#root > div > div > div > div.index-module__flex-1-1___1sS5J.index-module__column-space-between___TZS4c > div.index-module__flex-1-1___1sS5J > div.TB_outerWrapper_5-80-0.TB_bordered_5-80-0.TB_notTreeStriped_5-80-0 > div > div > div.TB_body_5-80-0 > div > div.TB_hiddenScrollBar_5-80-0.TB_scrollXY_5-80-0 > table > tbody"
-            var nextPageElement = "#root > div > div > div.outerWrapper-1-3-1.outerWrapper-d0-1-3-2.index-module__table-with-filter___cCyT_ > div.index-module__flex-1-1___1sS5J.index-module__column-space-between___TZS4c > div.index-module__flex-0-0___I-d-v.index-module__sticky-table-bottom___Oi-nB > div.index-module__pagination-wrapper___17qlp > ul > li.PGT_next_5-80-0"
+            var nextPageElement = "#root > div > div > div > div.index-module__flex-1-1___1sS5J.index-module__column-space-between___TZS4c > div.index-module__flex-0-0___I-d-v.index-module__sticky-table-bottom___Oi-nB > div.index-module__pagination-wrapper___17qlp > ul > li.PGT_next_5-80-0"
             this.catchData("handleSKUTime", prekeyList, keyList, this.autoPage, pageElement, nextPageElement)
             break
           default:
